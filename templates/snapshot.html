@@ -1,0 +1,245 @@
+
+
+
+
+<div class="row">
+    <div class="col-xl-12 col-xs-12">
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">映射列表</h6>
+    </div>
+
+
+
+
+
+
+
+   <div class="card-body table-responsive mx-table">
+       
+       <button type="button" class="btn btn-success sm-text text-uppercase mb-2" data-toggle="modal" data-target="#myModal">新建快照</button>
+      <table class="table table-hover  t-text-dark--light-15 sm-text">
+        <thead>
+          <tr>
+            <th scope="col">快照名称</th>
+            <th scope="col">日期/状态</th>
+            <th scope="col">描述</th>
+            <th scope="col">操作</th>
+          </tr>
+        </thead>
+        <tbody class="t-mt-15">
+           {foreach $snapshot as $key => $vo}
+               <tr>
+                    <td>
+                     {$vo.name}
+                    </td>
+                    <td>{$vo.snaptime}</td>
+                    <td>{$vo.description}</td>
+                    <td>
+                      <div class="dropdown">
+                      <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                        操作<i class="mdi mdi-chevron-down"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-end" style="">
+                        <a class="dropdown-item" onclick="RollBACK('{$vo.name}')">回滚</a>
+                        <a class="dropdown-item" onclick="DeleteSnapshot('{$vo.name}')">删除</a>
+                        
+                      </div>
+                    </div>
+                    </td>
+              </tr>
+           {/foreach}
+          
+        </tbody>
+      </table>
+      
+
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    
+                    <h4 class="modal-title" id="myModalLabel">创建一个新的快照</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    
+
+                      <div class="form-group">
+                        <label for="name">快照名</label>
+                        <input type="text" class="form-control" id="Snapshot_name" placeholder="快照的名字">
+                      </div>
+                      
+                      <div class="form-group">
+                        <label for="name">描述</label>
+                        <textarea class="form-control" id="Snapshot_description" rows="3"></textarea>
+                      </div>
+
+                    
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="CreateSnapshot()">创建</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+      </div>
+
+</div>
+    <script type="text/javascript" charset="utf-8">
+        
+        function CreateSnapshot(){
+            name = Snapshot_name.value
+            description = Snapshot_description.value
+            
+            var body = {"func":"create_snapshot","name":name,"description":description}
+            $.post("{$MODULE_CUSTOM_API}",body,function(data,status){
+                
+            
+            
+                if(data.status=="200"){
+                    Swal.fire("成功", data.msg, "success");
+                    setTimeout(location.reload(),5000)
+                }else{
+                    Swal.fire("失败", "创建快照失败", "error");
+                }
+                
+                
+                    
+             })
+        }
+        
+        function RollBACK(name){
+            
+            Swal.fire({
+            	title: "回滚警告",
+            	html:"请确定您准备回滚到"+name+"</br>回滚成功后请手动开机",
+            	icon: "warning",
+            	showCancelButton: true,
+            	confirmButtonColor: "#DD6B55",
+            	confirmButtonText: "确定",
+            	cancelButtonText: "取消",
+            }).then((isConfirm) =>{
+            	if (isConfirm.value) {
+            	    
+            	var body = {"func":"RollBACK_snapshot","name":name}
+                    $.post("{$MODULE_CUSTOM_API}",body,function(data,status){
+                        
+                    
+                    
+                        if(data.status=="200"){
+                            Swal.fire("成功", data.msg, "success");
+                            setTimeout(location.reload(),5000)
+                        }else{
+                            Swal.fire("失败", "快照回滚失败", "error");
+                        }
+                        
+                        
+                            
+                     })
+            		
+            		
+            		
+            	}
+            });
+
+
+            
+            
+            
+            
+            
+        }
+        
+        function DeleteSnapshot(name){
+            
+            
+            Swal.fire({
+            	title: "删除警告",
+            	text: "您点错了吗?还是确定要删除"+name,
+            	icon: "warning",
+            	showCancelButton: true,
+            	confirmButtonColor: "#DD6B55",
+            	confirmButtonText: "确定",
+            	cancelButtonText: "取消"
+            }).then((isConfirm) =>{
+            	if (isConfirm.value) {
+            	    
+                 var body = {"func":"delete_snapshot","name":name}
+                $.post("{$MODULE_CUSTOM_API}",body,function(data,status){
+                
+                    if(data.status=="200"){
+                        Swal.fire("成功", data.msg, "success");
+                        setTimeout(location.reload(),5000)
+                    }else{
+                        Swal.fire("失败", "快照删除失败", "error");
+                    }
+                    
+                    
+                        
+                 })
+                
+            		
+            		
+            	}
+            });
+            
+           
+            
+            
+            
+            
+        }
+        
+     
+        
+        
+        
+        function ajax(options){
+        //创建一个ajax对象
+        var xhr = new XMLHttpRequest() || new ActiveXObject("Microsoft,XMLHTTP");
+        //数据的处理 {a:1,b:2} a=1&b=2;
+        if(typeof(options.data)!='string'){
+            var str = "";
+            for(var key in options.data){
+                str+="&"+key+"="+options.data[key];
+            }
+            str = str.slice(1)
+        }else{
+            var str = options.data;
+        }
+        
+        options.dataType=options.dataType||'json';
+        if(options.type == "get"){
+            var url = options.url+"?"+str;
+            xhr.open("get",url);
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send();
+        }else if(options.type == "post"){
+            xhr.open("post",options.url);
+            xhr.setRequestHeader("content-type","application/x-www-form-urlencoded");
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send(str)
+        }
+        //监听
+        xhr.onreadystatechange = function(){
+            //当请求成功的时候
+            if(xhr.readyState == 4 && xhr.status == 200){
+                var d = xhr.responseText;
+                d = JSON.parse(d);
+                //将请求的数据传递给成功回调函数
+                options.success&&options.success(d,xhr.responseXML)
+            }else if(xhr.status != 200){
+                //当失败的时候将服务器的状态传递给失败的回调函数
+                options.error&&options.error(xhr.status);
+            }
+        }
+    }
+        
+        
+    </script>
