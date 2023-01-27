@@ -1,0 +1,115 @@
+
+{$test}
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">客户端使用账号密码进行连接（推荐）</h6>
+    </div>
+ <div class="card-body table-responsive">
+     您可以通过SSH客户端工具远程连接Linux服务器。以下是您服务器的连接信息<br>
+       <table class="table table-hover  t-text-dark--light-15 sm-text">
+        <thead>
+          <tr>
+            <th scope="col">服务器连接地址</th>
+            <th scope="col">端口</th>
+            <th scope="col">用户名</th>
+            <th scope="col">密码</th>
+          </tr>
+        </thead>
+        <tr>
+            <td>{$params['configoptions']['ikuai_ip']}</td><td>{$port}</td><td>root</td><td>{$params['password']}</td>
+        </tr>
+        </table>
+    具体连接方法可以参考 <a href="https://imzxw.cn/?p=146" target="_blank">SSH客户端软件连接Linux服务器教程</a>
+
+  </div>
+
+ 
+ 
+ </div>
+
+
+
+{if $vnc}
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">使用浏览器发起VNC安全连接</h6>
+    </div>
+     <div class="card-body">
+         服务器控制台支持通过VNC远程连接服务器，您可以根据业务需求选择该连接方式<br>
+         
+        <button type="button" class="btn btn-success" onclick="connect_vnc()">连接服务器</button>
+        具体使用可以参考 <a href="https://imzxw.cn/?p=147" target="_blank">网页VNC远程操作方法</a>
+    </div>
+
+  </div>
+{/if}
+
+
+
+
+
+<script type="text/javascript" charset="utf-8">
+
+        function connect_vnc(){
+            var body = {"func":"Vnc"}
+            $.post("{$MODULE_CUSTOM_API}",body,function(data,status){
+                
+                if(data.status != "200"){
+                    alert("无法连接至控制台")
+                    return
+                }
+                
+                
+                // window.open(data.url,name,specs,replace)
+            window.open (data.url, "控制台VNC", "height=500, width=700, top=50%, left=50%, toolbar=no, menubar=no, scrollbars=no, resizable=no,location=no, status=yes"); //写成一行
+                // kzt.src=data.url
+                
+            })
+        }
+
+        
+     function ajax(options){
+        //创建一个ajax对象
+        var xhr = new XMLHttpRequest() || new ActiveXObject("Microsoft,XMLHTTP");
+        //数据的处理 {a:1,b:2} a=1&b=2;
+        if(typeof(options.data)!='string'){
+            var str = "";
+            for(var key in options.data){
+                str+="&"+key+"="+options.data[key];
+            }
+            str = str.slice(1)
+        }else{
+            var str = options.data;
+        }
+        
+        options.dataType=options.dataType||'json';
+        if(options.type == "get"){
+            var url = options.url+"?"+str;
+            xhr.open("get",url);
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send();
+        }else if(options.type == "post"){
+            xhr.open("post",options.url);
+            xhr.setRequestHeader("content-type","application/x-www-form-urlencoded");
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send(str)
+        }
+        //监听
+        xhr.onreadystatechange = function(){
+            //当请求成功的时候
+            if(xhr.readyState == 4 && xhr.status == 200){
+                var d = xhr.responseText;
+                d = JSON.parse(d);
+                //将请求的数据传递给成功回调函数
+                options.success&&options.success(d,xhr.responseXML)
+            }else if(xhr.status != 200){
+                //当失败的时候将服务器的状态传递给失败的回调函数
+                options.error&&options.error(xhr.status);
+            }
+        }
+    }
+        
+</script>
+
+
+

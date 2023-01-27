@@ -1,0 +1,67 @@
+<!--<iframe   src="" width="100%" height="500px"   frameborder="1/0"  id="kzt"     scrolling="yes/no/auto">   -->
+<!--</iframe>-->
+
+<embed width="770" height="500" src="" id="kzt"/>
+
+<script type="text/javascript" charset="utf-8">
+
+        function getURL(){
+            var body = {"func":"Vnc"}
+            $.post("{$MODULE_CUSTOM_API}",body,function(data,status){
+                
+                if(data.status != "200"){
+                    alert("无法连接至控制台")
+                    return
+                }
+                
+                
+                // window.open(data.url,name,specs,replace)
+window.open (data.url, "控制台VNC", "height=500, width=700, top=50%, left=50%, toolbar=no, menubar=no, scrollbars=no, resizable=no,location=no, status=yes"); //写成一行
+                // kzt.src=data.url
+                
+            })
+        }
+
+        
+     function ajax(options){
+        //创建一个ajax对象
+        var xhr = new XMLHttpRequest() || new ActiveXObject("Microsoft,XMLHTTP");
+        //数据的处理 {a:1,b:2} a=1&b=2;
+        if(typeof(options.data)!='string'){
+            var str = "";
+            for(var key in options.data){
+                str+="&"+key+"="+options.data[key];
+            }
+            str = str.slice(1)
+        }else{
+            var str = options.data;
+        }
+        
+        options.dataType=options.dataType||'json';
+        if(options.type == "get"){
+            var url = options.url+"?"+str;
+            xhr.open("get",url);
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send();
+        }else if(options.type == "post"){
+            xhr.open("post",options.url);
+            xhr.setRequestHeader("content-type","application/x-www-form-urlencoded");
+            xhr.setRequestHeader("Authorization","JWT {$Think.get.jwt}");
+            xhr.send(str)
+        }
+        //监听
+        xhr.onreadystatechange = function(){
+            //当请求成功的时候
+            if(xhr.readyState == 4 && xhr.status == 200){
+                var d = xhr.responseText;
+                d = JSON.parse(d);
+                //将请求的数据传递给成功回调函数
+                options.success&&options.success(d,xhr.responseXML)
+            }else if(xhr.status != 200){
+                //当失败的时候将服务器的状态传递给失败的回调函数
+                options.error&&options.error(xhr.status);
+            }
+        }
+    }
+        
+</script>
